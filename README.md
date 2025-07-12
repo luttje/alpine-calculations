@@ -18,6 +18,14 @@ This plugin adds simple directives that work together to create dynamic calculat
 
 ## Installation
 
+### CDN
+
+Include the following script in your HTML:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/alpine-calculations@0.1.x/dist/alpine-calculations.js" defer></script>
+```
+
 ### NPM
 
 ```bash
@@ -81,8 +89,27 @@ When you have multiple elements with the same source identifier, you can sum the
 You can use this plugin in FilamentPHP forms to perform calculations on form fields. For example, you can create a form that calculates
 the total price based on multiple items in a repeater field:
 
-> [!WARNING]
-> This example isn't yet tested, but it should give you an idea of how to use the plugin in a FilamentPHP form and why it might be useful.
+Load it in your AppServiceProvider:
+
+```php
+use Filament\Support\Facades\FilamentAsset;
+use Filament\Support\Assets\Js;
+
+class AppServiceProvider extends ServiceProvider
+{
+    // ...
+
+    public function boot(): void
+    {
+        FilamentAsset::register([
+            Js::make('alpine-calculations', 'https://cdn.jsdelivr.net/npm/alpine-calculations@0.1.x/dist/alpine-calculations.js')
+                ->core(),
+        ]);
+    }
+}
+```
+
+Then implement it in your form:
 
 ```php
 public function form(Form $form): Form
