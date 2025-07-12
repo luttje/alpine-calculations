@@ -4,7 +4,7 @@ Easily collect values and perform calculations in Alpine.js. Personally, I use t
 FilamentPHP forms, but it can be used in any environment where Alpine.js is used.
 
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/luttje/alpine-calculations?label=version&style=flat-square)
-![Build size Brotli](https://img.badgesize.io/luttje/alpine-calculations/master/dist/alpine-calculations.js.svg?compression=gzip&style=flat-square&color=green)
+![Build size Brotli](https://img.badgesize.io/luttje/alpine-calculations/main/dist/alpine-calculations.js.svg?compression=gzip&style=flat-square&color=green)
 
 > [!NOTE]
 > This plugin is a proof-of-concept. I have not yet decided if I will continue maintaining this plugin, but I will keep it available
