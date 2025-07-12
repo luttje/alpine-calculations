@@ -6,6 +6,12 @@ FilamentPHP forms, but it can be used in any environment where Alpine.js is used
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/luttje/alpine-calculations?label=version&style=flat-square)
 ![Build size Brotli](https://img.badgesize.io/luttje/alpine-calculations/master/dist/alpine-calculations.js.svg?compression=gzip&style=flat-square&color=green)
 
+> [!NOTE]
+> This plugin is a proof-of-concept. I have not yet decided if I will continue maintaining this plugin, but I will keep it available
+> for now.
+> AlpineJS can already do all this with `x-model` and `x-effect`, but the main goal for me was to see if I could make the
+> front-end for calculations in FilamentPHP cleaner and more readable.
+
 ## About
 
 This plugin adds simple directives that work together to create dynamic calculations that automatically update when values change.
@@ -68,7 +74,43 @@ When you have multiple elements with the same source identifier, you can sum the
 </div>
 ```
 
-*he price behind `Total: $` will automatically update as you change the values in the input fields. When opening the page it would show `Total: $45`.*
+*The price behind `Total: $` will automatically update as you change the values in the input fields. When opening the page it would show `Total: $45`.*
+
+### Using this in FilamentPHP
+
+You can use this plugin in FilamentPHP forms to perform calculations on form fields. For example, you can create a form that calculates
+the total price based on multiple items in a repeater field:
+
+> [!WARNING]
+> This example isn't yet tested, but it should give you an idea of how to use the plugin in a FilamentPHP form and why it might be useful.
+
+```php
+public function form(Form $form): Form
+{
+    return $form
+        ->schema([
+            Forms\Components\Repeater::make('items')
+                ->schema([
+                    Forms\Components\TextInput::make('name')
+                        ->required(),
+                    Forms\Components\TextInput::make('price')
+                        ->money()
+                        ->required()
+                        ->extraInputAttributes([
+                            'x-calculator-source' => 'price',
+                        ]),
+                ])
+                ->columns(2),
+            Forms\Components\TextInput::make('total')
+                ->label('Total Price')
+                ->readOnly()
+                ->dehydrated(false)
+                ->extraInputAttributes([
+                    'x-calculator-expression' => 'sumValuesWithId("price")',
+                ]),
+        ]);
+}
+```
 
 ## Core Directives
 
@@ -154,7 +196,7 @@ Use `x-calculator-precision` to control decimal places, for example to show tax 
 
 ## Configuration
 
-You can customize how NaN values are handled:
+You can customize how `NaN` values are handled by configuring the plugin before starting Alpine.js:
 
 ```javascript
 import AlpineCalculator from 'alpine-calculations';
@@ -164,4 +206,6 @@ Alpine.plugin(
         handleNaN: () => 'N/A' // Return 'N/A' instead of NaN for invalid calculations
     })
 );
+
+Alpine.start();
 ```
