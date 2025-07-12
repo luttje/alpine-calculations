@@ -1,6 +1,8 @@
 name: Run tests
 
 on:
+  push:
+    branches: [main]
   pull_request:
 
 jobs:
@@ -25,3 +27,6 @@ jobs:
 
       - name: Build files
         run: npm run build
+
+      - name: Run tests
+        run: npm test
