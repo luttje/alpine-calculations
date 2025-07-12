@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Alpine Calculations</title>
+
+    <script src="../dist/alpine-calculations.js"
+            defer></script>
+    <script src="//unpkg.com/alpinejs"
+            defer></script>
+</head>
+
+<body>
+    <div x-data="{
+        rowCount: 1,
+
+        addRow() {
+            this.rowCount++;
+        },
+
+        removeRow(index) {
+            if (this.rowCount > 1) {
+                this.rowCount--;
+            }
+        }
+    }">
+        <h2>Input Rows Example</h2>
+
+        <div>
+            <button type="button"
+                    @click="addRow()">Add Row</button>
+
+            <button type="button"
+                    @click="removeRow(rowCount - 1)"
+                    x-show="rowCount > 1">Remove Last Row</button>
+        </div>
+
+        <template x-for="index in rowCount">
+            <div class="row">
+                <input type="number"
+                       placeholder="Amount"
+                       x-calculator-source="item_count"
+                       value="1"
+                       step="1">
+                <input type="number"
+                       placeholder="Price per unit"
+                       x-calculator-source="item_price"
+                       value="10"
+                       step="0.01">
+                <input type="text"
+                       readonly
+                       disabled
+                       x-calculator-source="item_total"
+                       x-calculator-expression="item_count * item_price"
+                       x-calculator-scope=".row">
+            </div>
+        </template>
+
+        <div class="total">
+            <h3>Total Item Count:
+                <span x-calculator-expression="sumValuesWithId('item_count')"
+                      x-calculator-source="total_item_count"></span>
+            </h3>
+            <h3>Total Price:
+                <span x-calculator-expression="sumValuesWithId('item_total')"
+                      x-calculator-source="total_item_price"></span>
+            </h3>
+            <h3>Average Price: <span x-calculator-expression="total_item_price / total_item_count"
+                      x-calculator-precision="2"></span></h3>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('alpine:calculator:ready', (ev) => {
+            Alpine.calculator.configure({
+                handleNaN: () => 'N/A' // Return 'N/A' instead of NaN for invalid calculations
+            });
+        });
+    </script>
+</body>

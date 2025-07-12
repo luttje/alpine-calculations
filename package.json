@@ -1,0 +1,24 @@
+{
+  "name": "alpine-calculations",
+  "description": "Easily collect values and perform calculations in Alpine.js",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": "Luttje",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/luttje/alpine-calculations"
+  },
+  "main": "src/index.js",
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
+    "rollup": "^2.35.1",
+    "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-filesize": "^9.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0"
+  }
+}
