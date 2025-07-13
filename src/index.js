@@ -213,16 +213,18 @@ function AlpineCalculator(Alpine) {
       result = handleNaN(result);
     }
 
+    const formattedResult = typeof result === 'number'
+      ? (
+        fixedPlaces
+          ? result.toFixed(parseInt(fixedPlaces))
+          : result
+      )
+      : result;
+
     if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-      element.value = result;
+      element.value = formattedResult;
     } else {
-      element.textContent = typeof result === 'number'
-        ? (
-          fixedPlaces
-            ? result.toFixed(parseInt(fixedPlaces))
-            : result
-        )
-        : result;
+      element.textContent = formattedResult;
     }
   };
 
