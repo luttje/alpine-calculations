@@ -36,5 +36,8 @@ jobs:
       - name: Build files
         run: npm run build
 
-      - name: Run tests
-        run: npm test
+      - name: Run tests with coverage
+        run: npm run test:ci
+
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v2.3.6

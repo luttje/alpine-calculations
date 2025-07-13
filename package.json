@@ -12,7 +12,8 @@
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "test": "jest test"
+    "test": "jest",
+    "test:ci": "jest --coverage"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",
