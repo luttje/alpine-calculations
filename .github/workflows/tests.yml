@@ -3,7 +3,15 @@ name: Run tests
 on:
   push:
     branches: [main]
+    paths:
+      - "dist/**"
+      - "src/**"
+      - "tests/**"
   pull_request:
+    paths:
+      - "dist/**"
+      - "src/**"
+      - "tests/**"
 
 jobs:
   tests:

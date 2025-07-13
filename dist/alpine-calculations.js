@@ -172,12 +172,6 @@
      * @returns {number} Numeric value
      */
     const extractElementValue = element => {
-      if (element.type === 'checkbox') {
-        return element.checked ? 1 : 0;
-      }
-      if (element.type === 'radio') {
-        return element.checked ? parseFloat(element.value) || 0 : 0;
-      }
       if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
         return parseFloat(element.value) || 0;
       }
