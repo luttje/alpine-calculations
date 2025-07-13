@@ -149,7 +149,7 @@ public function form(Form $form): Form
                     Forms\Components\TextInput::make('name')
                         ->required(),
                     Forms\Components\TextInput::make('price')
-                        ->money()
+                        ->numeric()
                         ->required()
                         ->extraInputAttributes([
                             'x-calculator-source' => 'price',
