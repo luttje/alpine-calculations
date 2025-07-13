@@ -1,24 +1,25 @@
 import '@testing-library/jest-dom'
 import Alpine from 'alpinejs'
 import Calculator from '../src/index.js'
+import { mockLocale, resetLocale } from './localization-mock.js'
 
 Alpine.plugin(Calculator)
 window.Alpine = Alpine
 Alpine.start()
 
 describe('Calculator Localization', () => {
-  const originalToLocaleString = Number.prototype.toLocaleString
+  beforeEach(() => {
+    mockLocale('en-US')
+  })
 
   afterEach(() => {
-    Number.prototype.toLocaleString = originalToLocaleString
+    resetLocale()
+
     document.body.innerHTML = ''
   })
 
   test('displays numbers with nl-NL locale formatting in display elements', async () => {
-    // Mock nl-NL locale formatting
-    Number.prototype.toLocaleString = function (locale, options) {
-      return originalToLocaleString.call(this, 'nl-NL', options)
-    }
+    mockLocale('nl-NL')
 
     document.body.innerHTML = `
       <div x-data>
@@ -30,13 +31,12 @@ describe('Calculator Localization', () => {
     await Promise.resolve()
 
     // In nl-NL: thousands separator is period, decimal separator is comma
+    expect(document.querySelector('[x-calculator-source]').value).toBe("1234.56")
     expect(document.getElementById('display').textContent).toBe('1.234,56')
   })
 
   test('numeric inputs receive standard format regardless of locale', async () => {
-    Number.prototype.toLocaleString = function (locale, options) {
-      return originalToLocaleString.call(this, 'nl-NL', options)
-    }
+    mockLocale('nl-NL')
 
     document.body.innerHTML = `
       <div x-data>
@@ -52,11 +52,6 @@ describe('Calculator Localization', () => {
   })
 
   test('handles large numbers with different locale thousands separators', async () => {
-    // Mock en-US locale formatting
-    Number.prototype.toLocaleString = function (locale, options) {
-      return originalToLocaleString.call(this, 'en-US', options)
-    }
-
     document.body.innerHTML = `
       <div x-data>
         <input type="number" x-calculator-source="amount" value="1000000">
@@ -74,11 +69,41 @@ describe('Calculator Localization', () => {
     expect(document.getElementById('numericTarget').value).toBe('1500000')
   })
 
+  test('handles locale-formatted numbers in input fields correctly', async () => {
+    mockLocale('nl-NL')
+
+    document.body.innerHTML = `
+    <div x-data>
+      <input type="text" id="source" x-calculator-source="price" value="1.366,45">
+      <span id="display" x-calculator-expression="price * 2" x-calculator-precision="2"></span>
+    </div>
+  `
+
+    await Promise.resolve()
+
+    // The display should show the correct calculation: 1366.45 * 2 = 2732.90
+    expect(document.getElementById('display').textContent).toBe('2.732,90')
+  })
+
+  test('handles various locale number formats correctly', async () => {
+    mockLocale('de-DE')
+
+    document.body.innerHTML = `
+    <div x-data>
+      <input type="text" id="source1" x-calculator-source="price1" value="1.234,56">
+      <input type="text" id="source2" x-calculator-source="price2" value="5.678,90">
+      <span id="sum" x-calculator-expression="price1 + price2" x-calculator-precision="2"></span>
+    </div>
+  `
+
+    await Promise.resolve()
+
+    // Should correctly parse and sum: 1234.56 + 5678.90 = 6913.46, then format as:
+    expect(document.getElementById('sum').textContent).toBe('6.913,46')
+  })
+
   test('handles decimal precision with fr-FR locale', async () => {
-    // Mock fr-FR locale formatting
-    Number.prototype.toLocaleString = function (locale, options) {
-      return originalToLocaleString.call(this, 'fr-FR', options)
-    }
+    mockLocale('fr-FR')
 
     document.body.innerHTML = `
       <div x-data>
@@ -98,10 +123,7 @@ describe('Calculator Localization', () => {
   })
 
   test('textarea elements receive locale-formatted values', async () => {
-    // Mock nl-NL locale formatting
-    Number.prototype.toLocaleString = function (locale, options) {
-      return originalToLocaleString.call(this, 'nl-NL', options)
-    }
+    mockLocale('nl-NL')
 
     document.body.innerHTML = `
       <div x-data>
@@ -117,10 +139,7 @@ describe('Calculator Localization', () => {
   })
 
   test('handles zero decimal places with locale formatting', async () => {
-    // Mock de-DE locale formatting
-    Number.prototype.toLocaleString = function (locale, options) {
-      return originalToLocaleString.call(this, 'de-DE', options)
-    }
+    mockLocale('de-DE')
 
     document.body.innerHTML = `
       <div x-data>

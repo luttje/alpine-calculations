@@ -11,6 +11,93 @@
    */
 
   let handleNaN = value => value;
+
+  /**
+   * Parses a localized number string as a float using the current locale.
+   *
+   * @param {string} str - The localized number string to parse
+   * @param {string} [locale] - Optional locale string (defaults to current locale)
+   * @returns {number} The parsed float number or NaN if parsing fails
+   */
+  function parseLocaleNumber(str, locale = navigator.language) {
+    if (typeof str !== 'string') {
+      return NaN;
+    }
+
+    // Trim whitespace
+    str = str.trim();
+    if (str === '') {
+      return NaN;
+    }
+
+    // Get locale-specific formatting info
+    const formatter = new Intl.NumberFormat(locale);
+    const parts = formatter.formatToParts(1234.5);
+
+    // Extract decimal and group separators from the locale
+    const decimalSep = parts.find(part => part.type === 'decimal')?.value || '.';
+    const groupSep = parts.find(part => part.type === 'group')?.value || ',';
+
+    // Handle negative numbers
+    const isNegative = str.startsWith('-') || str.startsWith('+');
+    const sign = str.startsWith('-') ? -1 : 1;
+    if (isNegative) {
+      str = str.substring(1);
+    }
+    let cleanStr = str;
+
+    // Escapes special regex characters
+    const escapeRegex = /[.*+?^${}()|[\]\\]/g;
+    const regexEscape = s => s.replace(escapeRegex, '\\$&');
+
+    // Remove group separators (thousands separators)
+    if (groupSep !== decimalSep) {
+      // Handle the case where input might have regular spaces but locale uses non-breaking spaces
+      // or vice versa. We'll try to remove both the expected separator and common alternatives
+      const separatorsToRemove = [groupSep, '\u00A0', ' ', '\u2009', '\u2005'];
+      for (const sep of separatorsToRemove) {
+        const escapedSep = regexEscape(sep);
+        const regex = new RegExp(escapedSep, 'g');
+        cleanStr = cleanStr.replace(regex, '');
+      }
+    }
+
+    // Convert decimal separator to standard dot
+    if (decimalSep !== '.') {
+      const escapedDecimalSep = regexEscape(decimalSep);
+
+      // Check for multiple decimal separators (invalid)
+      const decimalMatches = cleanStr.match(new RegExp(escapedDecimalSep, 'g'));
+      if (decimalMatches && decimalMatches.length > 1) {
+        return NaN;
+      }
+      cleanStr = cleanStr.replace(new RegExp(escapedDecimalSep, 'g'), '.');
+    } else {
+      // For standard dot decimal separator, check for multiple dots
+      const dotMatches = cleanStr.match(/\./g);
+      if (dotMatches && dotMatches.length > 1) {
+        return NaN;
+      }
+    }
+
+    // Additional validation: empty string after cleaning should be NaN
+    if (cleanStr === '' || cleanStr === '.') {
+      return NaN;
+    }
+
+    // Parse the cleaned string
+    const result = parseFloat(cleanStr);
+    if (isNaN(result)) {
+      return NaN;
+    }
+
+    // Validate the result by checking if the cleaned string contains only valid characters
+    // Allow scientific notation (e/E) and basic number characters
+    if (!/^[0-9]*\.?[0-9]*([eE][+-]?[0-9]+)?$/.test(cleanStr)) {
+      return NaN;
+    }
+    return result * sign;
+  }
   function AlpineCalculator(Alpine) {
     // Global registry to track all calculator sources
     const sourceRegistry = new Map();
@@ -34,7 +121,7 @@
      */
     const sumValuesWithId = id => {
       return getSourcesById(id).reduce((sum, source) => {
-        const value = parseFloat(source.getValue()) || 0;
+        const value = source.getValue() || 0;
         return sum + value;
       }, 0);
     };
@@ -59,7 +146,7 @@
      */
     const getScopedValue = (scopeElement, id) => {
       const sources = getScopedSources(scopeElement, id);
-      return sources.length > 0 ? parseFloat(sources[0].getValue()) || 0 : 0;
+      return sources.length > 0 ? sources[0].getValue() || 0 : 0;
     };
 
     /**
@@ -103,7 +190,7 @@
         const allSources = Array.from(sourceRegistry.values());
         const sourceGroups = {};
         allSources.forEach(source => {
-          const value = parseFloat(source.getValue()) || 0;
+          const value = source.getValue() || 0;
           if (!sourceGroups[source.id]) {
             sourceGroups[source.id] = [];
           }
@@ -169,13 +256,21 @@
      * Extracts numeric value from various element types
      *
      * @param {Element} element - The element to extract value from
-     * @returns {number} Numeric value
+     * @returns {string|number} Raw value for parsing
      */
     const extractElementValue = element => {
       if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-        return parseFloat(element.value) || 0;
+        // In JavaScript, the .value property of an `<input type="number">` will always return
+        // a string in the standard format (using a dot as the decimal separator) regardless of
+        // the user's locale.
+        if (element.type === 'number') {
+          return parseFloat(element.value) || 0;
+        }
+
+        // For other input types, we must parse the value as a locale string
+        return parseLocaleNumber(element.value);
       }
-      return parseFloat(element.textContent) || 0;
+      return parseLocaleNumber(element.textContent);
     };
 
     /**

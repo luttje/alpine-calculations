@@ -1,23 +1,18 @@
 import '@testing-library/jest-dom'
 import Alpine from 'alpinejs'
 import Calculator from '../src/index.js'
+import { mockLocale, resetLocale } from './localization-mock.js'
 
 Alpine.plugin(Calculator)
 window.Alpine = Alpine
 Alpine.start()
 
-// Force en-US locale for consistent decimal formatting when testing on
-// different systems or environments.
-const originalToLocaleString = Number.prototype.toLocaleString
-
 beforeEach(() => {
-  Number.prototype.toLocaleString = function (locale, options) {
-    return originalToLocaleString.call(this, 'en-US', options)
-  }
+  mockLocale('en-US')
 })
 
 afterEach(() => {
-  Number.prototype.toLocaleString = originalToLocaleString
+  resetLocale()
 })
 
 test('x-calculator-precision formats decimals', async () => {

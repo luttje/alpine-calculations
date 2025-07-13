@@ -22,14 +22,14 @@ describe('AlpineJS Calculator Security Tests', () => {
 
     const result = document.getElementById('result')
 
-    // Malicious string gets cast to NaN, then handled as 0 by parseFloat
+    // Malicious string gets cast to NaN, then handled as 0 by parseLocaleNumber
     expect(result.textContent).toBe('0')
   })
 
   test('x-calculator-source with script injection attempts are neutralized', async () => {
     window.vulnerabilityTest = { value: 'original' };
 
-    // User input in source values is safe due to parseFloat()
+    // User input in source values is safe due to parseLocaleNumber() not getting through non-numeric strings
     const userInput = "5; (globalThis.vulnerabilityTest.value = 'hacked'); 5";
 
     document.body.innerHTML = `
@@ -42,8 +42,8 @@ describe('AlpineJS Calculator Security Tests', () => {
 
     const total = document.getElementById('total')
 
-    // Script injection in source value is neutralized by parseFloat
-    expect(total.textContent).toBe('10') // parseFloat('5; malicious_code; 5') = 5
+    // Script injection in source value is neutralized by parseLocaleNumber
+    expect(total.textContent).toBe('0')
     expect(window.vulnerabilityTest.value).toBe('original')
   })
 
@@ -57,8 +57,9 @@ describe('AlpineJS Calculator Security Tests', () => {
     await Promise.resolve()
 
     const result = document.getElementById('result')
-    // parseFloat safely extracts numeric portion
-    expect(result.textContent).toBe('123.45')
+
+    // parseLocaleNumber cannot parse non-numeric strings, so it returns NaN, which is handled as 0
+    expect(result.textContent).toBe('0')
   })
 
   test('predefined expressions with source values are secure', async () => {
