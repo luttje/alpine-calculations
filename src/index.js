@@ -14,7 +14,7 @@ let handleNaN = (value) => value;
  * @param {string} [locale] - Optional locale string (defaults to current locale)
  * @returns {number} The parsed float number or NaN if parsing fails
  */
-function parseLocaleNumber(str, locale = navigator.language) {
+function parseLocaleNumber(str, locale) {
   if (typeof str !== 'string') {
     return NaN;
   }
