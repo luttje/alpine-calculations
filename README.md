@@ -139,6 +139,66 @@ public function form(Form $form): Form
 }
 ```
 
+## Safe Usage Patterns
+
+The plugin uses `new Function()` to evaluate expressions, which is safe when expressions are static and developer-controlled, but becomes a security risk when user input is involved.
+
+Take note that the plugin is designed so that:
+
+- **Source values**: are automatically sanitized and may contain user content ✅
+- **Expression content**: must always be developer-controlled ✅
+- **User input in expressions**: are never supported ❌
+
+<details>
+
+*<summary>Expand for examples of safe and unsafe usage</summary>*
+
+### ✅ SAFE: Source Values Are Auto-Sanitized
+
+Source values (`x-calculator-source`) are automatically converted to numbers using `parseFloat()`, making them safe from injection:
+
+```html
+<!-- Safe: User input is cast to float -->
+<input type="text" x-calculator-source="price" value="user_input_here">
+<span x-calculator-expression="price * 2"></span>
+```
+
+Even malicious input like `"alert('xss'); 5"` becomes `0` (NaN) or extracts only the numeric portion.
+
+### ✅ SAFE: Predefined Expressions
+
+Always use predefined, static expressions in `x-calculator-expression`:
+
+```html
+<!-- Safe: Expression is hardcoded -->
+<input x-calculator-source="price" value="10">
+<input x-calculator-source="quantity" value="3">
+<span x-calculator-expression="price * quantity * 1.08"></span>
+```
+
+### ❌ UNSAFE: Dynamic Expression Building
+
+**NEVER** concatenate user input into `x-calculator-expression`:
+
+```html
+<!-- DANGEROUS: Don't do this -->
+<span x-calculator-expression="price + ${userInput}"></span>
+
+<!-- DANGEROUS: Don't do this -->
+<span x-calculator-expression="price * getMultiplier('${userSelection}')"></span>
+```
+
+### ❌ UNSAFE: Server-Side Expression Generation
+
+**NEVER** build expressions from user input on the server:
+
+```php
+<!-- DANGEROUS: Don't do this -->
+<span x-calculator-expression="<?= $baseExpression . $userFormula ?>"></span>
+```
+
+</details>
+
 ## Core Directives
 
 ### 1. `x-calculator-source`
