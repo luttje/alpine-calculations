@@ -5,6 +5,7 @@ FilamentPHP forms, but it can be used in any environment where Alpine.js is used
 
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/luttje/alpine-calculations?label=version&style=flat-square)
 ![Build size Brotli](https://img.badgesize.io/luttje/alpine-calculations/main/dist/alpine-calculations.js.svg?compression=gzip&style=flat-square&color=green)
+[![Run tests](https://github.com/luttje/alpine-calculations/actions/workflows/tests.yml/badge.svg)](https://github.com/luttje/alpine-calculations/actions/workflows/tests.yml)
 
 > [!NOTE]
 > This plugin is a proof-of-concept. I have not yet decided if I will continue maintaining this plugin, but I will keep it available
@@ -12,11 +13,7 @@ FilamentPHP forms, but it can be used in any environment where Alpine.js is used
 > AlpineJS can already do all this with `x-model` and `x-effect`, but the main goal for me was to see if I could make the
 > front-end for calculations in FilamentPHP cleaner and more readable.
 
-## About
-
-This plugin adds simple directives that work together to create dynamic calculations that automatically update when values change.
-
-## Installation
+## 💽 Installation
 
 ### CDN
 
@@ -44,7 +41,7 @@ window.Alpine = Alpine
 window.Alpine.start()
 ```
 
-## Usage
+## 🛠️ Usage
 
 [&raquo; See `examples/repeater.html` for a detailed example](examples/repeater.html)
 
@@ -65,6 +62,36 @@ To perform calculations, let's work with a simple example of a calculator that c
     <p>Total: $<span x-calculator-expression="price * quantity"></span></p>
 </div>
 ```
+
+> [!WARNING]
+> This plugin uses `new Function()` to evaluate expressions, which is safe when expressions are static and developer-controlled, but becomes a security risk when user input is involved.
+>
+> Take note that the plugin is designed so that:
+>
+> - **Source values**: are automatically sanitized and may contain user content
+> - **Expression content**: must always be developer-controlled and never contain user content
+> - **User input in expressions**: are never supported!
+>
+> ### ❌ UNSAFE: Dynamic Expression Building
+>
+> **NEVER** concatenate user input into `x-calculator-expression`:
+>
+> ```html
+> <!-- DANGEROUS: Don't do this -->
+> <span x-calculator-expression="price + ${userInput}"></span>
+> 
+> <!-- DANGEROUS: Don't do this -->
+> <span x-calculator-expression="price * getMultiplier('${userSelection}')"></span>
+> ```
+>
+> ### ❌ UNSAFE: Server-Side Expression Generation
+>
+> **NEVER** build expressions from user input on the server:
+>
+> ```html
+> <!-- DANGEROUS: Don't do this -->
+> <span x-calculator-expression="<?php echo $baseExpression . $userFormula; ?>"></span>
+> ```
 
 ### Using sumValuesWithId() Function
 
@@ -139,67 +166,7 @@ public function form(Form $form): Form
 }
 ```
 
-## Safe Usage Patterns
-
-The plugin uses `new Function()` to evaluate expressions, which is safe when expressions are static and developer-controlled, but becomes a security risk when user input is involved.
-
-Take note that the plugin is designed so that:
-
-- **Source values**: are automatically sanitized and may contain user content ✅
-- **Expression content**: must always be developer-controlled ✅
-- **User input in expressions**: are never supported ❌
-
-<details>
-
-*<summary>Expand for examples of safe and unsafe usage</summary>*
-
-### ✅ SAFE: Source Values Are Auto-Sanitized
-
-Source values (`x-calculator-source`) are automatically converted to numbers using `parseFloat()`, making them safe from injection:
-
-```html
-<!-- Safe: User input is cast to float -->
-<input type="text" x-calculator-source="price" value="user_input_here">
-<span x-calculator-expression="price * 2"></span>
-```
-
-Even malicious input like `"alert('xss'); 5"` becomes `0` (NaN) or extracts only the numeric portion.
-
-### ✅ SAFE: Predefined Expressions
-
-Always use predefined, static expressions in `x-calculator-expression`:
-
-```html
-<!-- Safe: Expression is hardcoded -->
-<input x-calculator-source="price" value="10">
-<input x-calculator-source="quantity" value="3">
-<span x-calculator-expression="price * quantity * 1.08"></span>
-```
-
-### ❌ UNSAFE: Dynamic Expression Building
-
-**NEVER** concatenate user input into `x-calculator-expression`:
-
-```html
-<!-- DANGEROUS: Don't do this -->
-<span x-calculator-expression="price + ${userInput}"></span>
-
-<!-- DANGEROUS: Don't do this -->
-<span x-calculator-expression="price * getMultiplier('${userSelection}')"></span>
-```
-
-### ❌ UNSAFE: Server-Side Expression Generation
-
-**NEVER** build expressions from user input on the server:
-
-```php
-<!-- DANGEROUS: Don't do this -->
-<span x-calculator-expression="<?= $baseExpression . $userFormula ?>"></span>
-```
-
-</details>
-
-## Core Directives
+## 📚 Core Directives
 
 ### 1. `x-calculator-source`
 
@@ -238,7 +205,7 @@ This directive calculates the result of an expression and displays it in the ele
 
 This directive creates boundaries for calculations, useful when you have repeating sections that should calculate independently.
 
-## Advanced Features
+## 🐦‍🔥 Advanced Features
 
 ### Scoped Calculations
 
@@ -281,7 +248,7 @@ Use `x-calculator-precision` to control decimal places, for example to show tax 
 </div>
 ```
 
-## Configuration
+## 🧩 Configuration
 
 You can customize how `NaN` values are handled by configuring the plugin before starting Alpine.js:
 
