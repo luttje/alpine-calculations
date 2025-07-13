@@ -183,13 +183,16 @@
      *
      * @param {Element} element - The element to update
      * @param {*} result - The calculated result
-     * @param {number} [fixedPlaces] - Number of decimal places to fix
+     * @param {number} [decimalPlaces] - Number of decimal places to fix
      */
-    const updateElementContent = (element, result, fixedPlaces) => {
+    const updateElementContent = (element, result, decimalPlaces) => {
       if (isNaN(result)) {
         result = handleNaN(result);
       }
-      const formattedResult = typeof result === 'number' ? fixedPlaces ? result.toFixed(parseInt(fixedPlaces)) : result : result;
+      const formattedResult = typeof result === 'number' ? decimalPlaces ? result.toLocaleString(undefined, {
+        minimumFractionDigits: parseInt(decimalPlaces),
+        maximumFractionDigits: parseInt(decimalPlaces)
+      }) : result : result;
       if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
         element.value = formattedResult;
       } else {

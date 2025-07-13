@@ -23,7 +23,6 @@ test('scoped calculations are isolated', async () => {
     </div>
   `
 
-  Alpine.start()
   await Promise.resolve()
 
   expect(document.getElementById('total1').textContent).toBe('10')

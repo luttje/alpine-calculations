@@ -15,7 +15,6 @@ test('sumValuesWithId computes correct total', async () => {
     </div>
   `
 
-  Alpine.start()
   await Promise.resolve()
 
   const sum = document.getElementById('sum')

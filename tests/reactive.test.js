@@ -14,7 +14,6 @@ test('reacts to input change and updates expression', async () => {
     </div>
   `
 
-  Alpine.start()
   await Promise.resolve()
 
   const input = document.getElementById('qty')
