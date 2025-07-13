@@ -7,11 +7,13 @@ on:
       - "dist/**"
       - "src/**"
       - "tests/**"
+      - ".github/workflows/**"
   pull_request:
     paths:
       - "dist/**"
       - "src/**"
       - "tests/**"
+      - ".github/workflows/**"
 
 jobs:
   tests:
