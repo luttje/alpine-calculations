@@ -213,7 +213,7 @@ function AlpineCalculator(Alpine) {
       result = handleNaN(result);
     }
 
-    const formattedResult = typeof result === 'number'
+    let formattedResult = typeof result === 'number'
       ? (
         decimalPlaces
           ? result.toLocaleString(undefined, {
@@ -225,6 +225,15 @@ function AlpineCalculator(Alpine) {
       : result;
 
     if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+      const isNumericInput = element.type === 'number';
+
+      if (isNumericInput) {
+        // For numeric inputs we must use en-US notation when setting it
+        formattedResult = decimalPlaces ?
+          result.toFixed(parseInt(decimalPlaces)) :
+          result;
+      }
+
       element.value = formattedResult;
     } else {
       element.textContent = formattedResult;
