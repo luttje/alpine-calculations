@@ -390,6 +390,9 @@
           formattedResult = decimalPlaces ? result.toFixed(parseInt(decimalPlaces)) : result;
         }
         element.value = formattedResult;
+
+        // Dispatch an input event to notify Alpine/Filament of the change
+        element.dispatchEvent(new Event('input'));
       } else {
         element.textContent = formattedResult;
       }

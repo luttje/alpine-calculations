@@ -442,6 +442,9 @@ function AlpineCalculator(Alpine) {
       }
 
       element.value = formattedResult;
+
+      // Dispatch an input event to notify Alpine/Filament of the change
+      element.dispatchEvent(new Event('input'));
     } else {
       element.textContent = formattedResult;
     }
