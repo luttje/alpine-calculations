@@ -1,7 +1,7 @@
 {
   "name": "alpine-calculations",
   "description": "Easily collect values and perform calculations in Alpine.js",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "MIT",
   "author": "Luttje",
   "repository": {

@@ -200,6 +200,47 @@ function AlpineCalculator(Alpine) {
   };
 
   /**
+   * Creates global evaluation context with all sources, except those in
+   * the provided existing context (local scope), using those instead.
+   * This allows global scopes, but not creating arrays for single values
+   * that may exist across multiple scopes.
+   *
+   * @param {Object} existingContext - Existing context to exclude from global
+   * @returns {Object} Global context object
+   */
+  const createGlobalContext = (existingContext) => {
+    const context = { sumValuesWithId };
+    const allSources = Array.from(sourceRegistry.values());
+    const sourceGroups = {};
+
+    allSources.forEach(source => {
+      // If this source is already in the existing context, skip it and use
+      // that value instead
+      if (existingContext && existingContext[source.id] !== undefined) {
+        context[source.id] = existingContext[source.id];
+        return;
+      }
+
+      const value = source.getValue() || 0;
+
+      if (!sourceGroups[source.id]) {
+        sourceGroups[source.id] = [];
+      }
+
+      sourceGroups[source.id].push(value);
+    });
+
+    // Add single values directly, arrays for multiple values
+    Object.entries(sourceGroups).forEach(([id, values]) => {
+      context[id] = values.length === 1
+        ? values[0]
+        : values;
+    });
+
+    return context;
+  };
+
+  /**
    * Creates an evaluation context with utility functions and scoped values
    *
    * @param {Element} scopeElement - The scope boundary element
@@ -219,43 +260,40 @@ function AlpineCalculator(Alpine) {
       });
     } else {
       // Global context: include all sources
-      const allSources = Array.from(sourceRegistry.values());
-      const sourceGroups = {};
-
-      allSources.forEach(source => {
-        const value = source.getValue() || 0;
-
-        if (!sourceGroups[source.id]) {
-          sourceGroups[source.id] = [];
-        }
-
-        sourceGroups[source.id].push(value);
-      });
-
-      // Add single values directly, arrays for multiple values
-      Object.entries(sourceGroups).forEach(([id, values]) => {
-        context[id] = values.length === 1
-          ? values[0]
-          : values;
-      });
+      return createGlobalContext();
     }
 
     return context;
   };
 
   /**
-   * Safely evaluates mathematical expressions with a limited context
+   * Safely evaluates mathematical expressions with fallback to global context
    *
    * @param {string} expression - The expression to evaluate
    * @param {Object} context - Variables and functions available to the expression
+   * @param {Element} scopeElement - The scope element for fallback
    * @returns {number} Result of the expression or 0 on error
    */
-  const evaluateExpression = (expression, context) => {
+  const evaluateExpression = (expression, context, scopeElement) => {
     try {
       const func = new Function(...Object.keys(context), `return ${expression}`);
 
       return func(...Object.values(context));
     } catch (error) {
+      // If scoped evaluation fails and we're in a scope, try global context
+      if (scopeElement !== document && error instanceof ReferenceError) {
+        try {
+          const globalContext = createGlobalContext(context);
+          const globalFunc = new Function(...Object.keys(globalContext), `return ${expression}`);
+
+          return globalFunc(...Object.values(globalContext));
+        } catch (globalError) {
+          console.warn('Calculator expression evaluation error:', globalError);
+
+          return 0;
+        }
+      }
+
       console.warn('Calculator expression evaluation error:', error);
 
       return 0;
@@ -345,7 +383,25 @@ function AlpineCalculator(Alpine) {
       }
 
       // For other input types, we must parse the value as a locale string
-      return parseLocaleNumber(element.value, localeOverride);
+      let parsed = parseLocaleNumber(element.value, localeOverride);
+
+      // If parsing fails, see if this is a boolean input
+      if (isNaN(parsed)) {
+        if (element.type === 'checkbox') {
+          return element.checked ? 1 : 0;
+        } else if (element.type === 'hidden') {
+          // Hidden inputs can have yes/no/true/false values
+          const value = element.value.trim().toLowerCase();
+
+          if (value === 'yes' || value === 'true') {
+            return true;
+          } else if (value === 'no' || value === 'false') {
+            return false;
+          }
+        }
+      }
+
+      return parsed;
     }
 
     return parseLocaleNumber(element.textContent, localeOverride);
@@ -472,7 +528,7 @@ function AlpineCalculator(Alpine) {
 
     const updateExpression = () => {
       const context = createEvaluationContext(scopeElement);
-      const result = evaluateExpression(expression, context);
+      const result = evaluateExpression(expression, context, scopeElement);
 
       // Store previous value to detect changes
       const previousValue = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'
