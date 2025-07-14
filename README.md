@@ -168,7 +168,7 @@ public function form(Form $form): Form
 }
 ```
 
-## 📚 Core Directives
+## 📚 Attribute Explanations
 
 ### 1. `x-calculator-source`
 
@@ -205,7 +205,42 @@ This directive calculates the result of an expression and displays it in the ele
 
 **Usage**: `x-calculator-scope` or `x-calculator-scope="css_selector"`
 
-This directive creates boundaries for calculations, useful when you have repeating sections that should calculate independently.
+This attribute demarcates boundaries for calculations, useful when you have repeating sections that should calculate independently.
+
+### 4. `x-calculator-precision`
+
+**Purpose**: Controls the number of decimal places in calculations
+
+**Usage**: `x-calculator-precision="number_of_decimal_places"`
+
+This attribute specifies how many decimal places to show in the result of a calculation. It can be applied to any element with `x-calculator-expression`.
+
+### 5. `x-calculator-locale`
+
+**Purpose**: Sets the locale for number formatting
+
+**Usage**: `x-calculator-locale="locale_string"`
+
+This plugin will look for the `x-calculator-locale` attribute on the scope or body to determine the locale for number formatting. If not set, it defaults to whatever the user's browser setting is. This will affect how numbers are parsed and formatted from `input` elements of type `text` and non-input elements.
+
+To override the number formatting locale, you can set the `x-calculator-locale` attribute on:
+
+1. The element with `x-calculator-source` or `x-calculator-expression`
+2. The source element's scope described with `x-calculator-scope`
+3. On the `<body>` tag.
+
+The plugin checks these in order and uses the first one it finds. If none are found, it defaults to whatever the user's browser setting is (through `new Intl.NumberFormat().resolvedOptions().locale`).
+
+```html
+<body x-calculator-locale="en-US">
+```
+
+*The value should be a valid locale string, such as `en-US`, `fr-FR`, etc.*
+
+> [!NOTE]
+> Dynamically changing the locale attribute value is not yet supported.
+
+You can change the name of the attribute used for localization in [the plugin configuration](#-configuration).
 
 ## 🐦‍🔥 Advanced Features
 
@@ -278,29 +313,10 @@ AlpineCalculator.configure({
 
 ### Localization Attribute
 
-This plugin will look for the `x-calculator-locale` attribute on the scope or body to determine the locale for number formatting. If not set, it defaults to whatever the user's browser setting is. This will affect how numbers are parsed and formatted from `input` elements of type `text` and non-input elements.
-
-To override the number formatting locale, you can set the `x-calculator-locale` attribute on:
-
-1. The element with `x-calculator-source`
-2. The source element's scope described with `x-calculator-scope`
-3. On the `<body>` tag.
-
-The plugin checks these in order and uses the first one it finds. If none are found, it defaults to whatever the user's browser setting is (through `new Intl.NumberFormat().resolvedOptions().locale`).
-
-```html
-<body x-calculator-locale="en-US">
-```
-
-*The value should be a valid locale string, such as `en-US`, `fr-FR`, etc.*
-
-> [!NOTE]
-> Dynamically changing the locale attribute value is not yet supported.
-
-You can change what this attribute is called by configuring the plugin:
+You can change what the number formatting localization attribute is by configuring the plugin:
 
 ```javascript
 AlpineCalculator.configure({
-    localeAttribute: 'x-calculator-locale'
+    localeAttribute: 'x-lang' // Change it to match your project's conventions
 });
 ```
