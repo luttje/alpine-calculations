@@ -3,8 +3,7 @@
 Easily collect values and perform calculations in [Alpine.js](https://alpinejs.dev/). Personally, I use this to perform calculations on
 FilamentPHP forms, but it can be used in any environment where Alpine.js is used.
 
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/luttje/alpine-calculations?label=version&style=flat-square)
-![Build size Brotli](https://img.badgesize.io/luttje/alpine-calculations/main/dist/alpine-calculations.js.svg?compression=gzip&style=flat-square&color=green)
+![NPM Version](https://img.shields.io/npm/v/alpine-calculations)
 [![Run tests](https://github.com/luttje/alpine-calculations/actions/workflows/tests.yml/badge.svg)](https://github.com/luttje/alpine-calculations/actions/workflows/tests.yml)
 [![Coverage Status](https://coveralls.io/repos/github/luttje/alpine-calculations/badge.svg?branch=main)](https://coveralls.io/github/luttje/alpine-calculations?branch=main)
 
