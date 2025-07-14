@@ -16,6 +16,8 @@ describe('Calculator Localization', () => {
     resetLocale()
 
     document.body.innerHTML = ''
+    document.body.removeAttribute('x-calculator-locale')
+    document.body.removeAttribute('x-lang')
   })
 
   test('displays numbers with nl-NL locale formatting in display elements', async () => {
@@ -156,5 +158,118 @@ describe('Calculator Localization', () => {
 
     // Numeric input gets standard format with no decimal places
     expect(document.getElementById('numericTarget').value).toBe('2470')
+  })
+
+  test('handles locale overrides on specific sources', async () => {
+    // The browser's locale is set to 'en-US'
+    mockLocale('en-US')
+
+    document.body.innerHTML = `
+      <div x-data>
+        <input type="text" x-calculator-source="price" value="1.234,56" x-calculator-locale="nl-NL">
+        <input type="text" x-calculator-source="price" value="1 234,56" x-calculator-locale="fr-FR">
+        <input type="text" x-calculator-source="price" value="1234.56">
+        <span id="displayUS" x-calculator-expression="sumValuesWithId('price') * 2" x-calculator-precision="2"></span>
+        <span id="displayNL" x-calculator-expression="sumValuesWithId('price') * 2" x-calculator-precision="2" x-calculator-locale="nl-NL"></span>
+      </div>
+    `;
+
+    await Promise.resolve()
+
+    // Formatting will be in the browser locale (en-US)
+    expect(document.getElementById('displayUS').textContent).toBe('7,407.36')
+
+    // The nl-NL locale override should format the result correctly
+    expect(document.getElementById('displayNL').textContent).toBe('7.407,36')
+  })
+
+  test('handles locale overrides on the scope', async () => {
+    // The browser's locale is set to 'en-US'
+    mockLocale('en-US')
+
+    document.body.innerHTML = `
+      <div x-data x-calculator-locale="nl-NL">
+        <input type="text" x-calculator-source="price" x-calculator-scope="[x-data]" value="1.234,56">
+        <span id="display" x-calculator-expression="price * 2" x-calculator-scope="[x-data]" x-calculator-precision="2"></span>
+      </div>
+    `;
+
+    await Promise.resolve()
+
+    // The scope's locale override should format the result correctly
+    expect(document.getElementById('display').textContent).toBe('2.469,12')
+  })
+
+  test('handles locale overrides on the body', async () => {
+    // The browser's locale is set to 'en-US'
+    mockLocale('en-US')
+
+    document.body.innerHTML = `
+      <div x-data>
+        <input type="text" x-calculator-source="price" value="1.234,56">
+        <span id="display" x-calculator-expression="price * 2" x-calculator-precision="2"></span>
+      </div>
+    `;
+
+    // Set the locale override on the body
+    document.body.setAttribute('x-calculator-locale', 'nl-NL');
+
+    await Promise.resolve()
+
+    // The body locale override should format the result correctly
+    expect(document.getElementById('display').textContent).toBe('2.469,12')
+  })
+
+  test('handles a locale override with different name configured', async () => {
+    // The browser's locale is set to 'en-US'
+    mockLocale('en-US')
+
+    Alpine.plugin(
+      Calculator.configure({
+        localeAttribute: 'x-lang'
+      })
+    )
+
+    // Set the locale override on the body with a different attribute name
+    document.body.setAttribute('x-lang', 'nl-NL');
+
+    document.body.innerHTML = `
+      <div x-data>
+        <input type="text" x-calculator-source="price" value="1.234,56">
+        <span id="display" x-calculator-expression="price * 2" x-calculator-precision="2"></span>
+      </div>
+    `;
+
+    await Promise.resolve()
+
+    // The body locale override should format the result correctly
+    expect(document.getElementById('display').textContent).toBe('2.469,12')
+  })
+
+  // This test is failing, since we don't support dynamic locale changes yet
+  test.failing('handles a locale override being changed dynamically', async () => {
+    // The browser's locale is set to 'en-US'
+    mockLocale('en-US')
+
+    document.body.innerHTML = `
+      <div x-data>
+        <input type="number" x-calculator-source="price" value="1234.56">
+        <span id="display" x-calculator-expression="price * 2" x-calculator-precision="2"></span>
+      </div>
+    `;
+
+    await Promise.resolve()
+
+    // Initially, no locale override
+    expect(document.getElementById('display').textContent).toBe('2,469.12')
+
+    // Change the locale dynamically
+    document.body.setAttribute('x-calculator-locale', 'nl-NL');
+
+    await Promise.resolve()
+
+    // TODO: Not yet implemented
+    // The display should now reflect the new locale
+    expect(document.getElementById('display').textContent).toBe('2.469,12')
   })
 })

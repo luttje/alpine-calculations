@@ -9,7 +9,8 @@ export function mockLocale(desiredLocale) {
   });
 
   Number.prototype.toLocaleString = function (locale, options) {
-    return originalToLocaleString.call(this, desiredLocale, options)
+    // If no locale is explicitly provided, use the desiredLocale, otherwise use the explicit locale
+    return originalToLocaleString.call(this, locale || desiredLocale, options)
   }
 
   jest.spyOn(Intl, 'NumberFormat').mockImplementation((locale, options) => {

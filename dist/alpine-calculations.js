@@ -10,7 +10,21 @@
    * Provides directives for seamless reactive calculations.
    */
 
-  let handleNaN = value => value;
+  const ATTRIBUTE_NAME_SCOPE = 'x-calculator-scope';
+
+  /**
+   * Configuration settings
+   */
+  const config = {
+    /**
+     * Default handler for NaN values.
+     */
+    handleNaN: value => value,
+    /**
+     * Default attribute name for locale override
+     */
+    localeAttribute: 'x-calculator-locale'
+  };
 
   /**
    * Parses a localized number string as a float using the current locale.
@@ -253,12 +267,40 @@
     };
 
     /**
+     * Gets the locale override from an element's attribute
+     *
+     * @param {Element} element - The element to check for locale override
+     * @returns {string|undefined} The locale override or undefined if not set
+     */
+    const getLocaleOverride = element => {
+      // If the element has a locale override attribute, use it
+      let localeOverride = element.getAttribute(config.localeAttribute);
+
+      // If it has no locale override, check the scope
+      if (!localeOverride && element.hasAttribute(ATTRIBUTE_NAME_SCOPE)) {
+        const scopeSelector = element.getAttribute(ATTRIBUTE_NAME_SCOPE);
+        const scopeElement = findScope(element, scopeSelector);
+        localeOverride = scopeElement.getAttribute(config.localeAttribute);
+      }
+
+      // If still no locale override, check the body attribute which will return null if not set
+      if (!localeOverride) {
+        localeOverride = document.body.getAttribute(config.localeAttribute);
+      }
+      if (!localeOverride) {
+        return undefined;
+      }
+      return localeOverride;
+    };
+
+    /**
      * Extracts numeric value from various element types
      *
      * @param {Element} element - The element to extract value from
      * @returns {string|number} Raw value for parsing
      */
     const extractElementValue = element => {
+      let localeOverride = getLocaleOverride(element);
       if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
         // In JavaScript, the .value property of an `<input type="number">` will always return
         // a string in the standard format (using a dot as the decimal separator) regardless of
@@ -268,9 +310,9 @@
         }
 
         // For other input types, we must parse the value as a locale string
-        return parseLocaleNumber(element.value);
+        return parseLocaleNumber(element.value, localeOverride);
       }
-      return parseLocaleNumber(element.textContent);
+      return parseLocaleNumber(element.textContent, localeOverride);
     };
 
     /**
@@ -282,12 +324,13 @@
      */
     const updateElementContent = (element, result, decimalPlaces) => {
       if (isNaN(result)) {
-        result = handleNaN(result);
+        result = config.handleNaN(result);
       }
-      let formattedResult = typeof result === 'number' ? decimalPlaces ? result.toLocaleString(undefined, {
+      let localeOverride = getLocaleOverride(element);
+      let formattedResult = typeof result === 'number' ? decimalPlaces ? result.toLocaleString(localeOverride, {
         minimumFractionDigits: parseInt(decimalPlaces),
         maximumFractionDigits: parseInt(decimalPlaces)
-      }) : result : result;
+      }) : result.toLocaleString(localeOverride) : result;
       if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
         const isNumericInput = element.type === 'number';
         if (isNumericInput) {
@@ -362,15 +405,15 @@
       let scopeElement = document;
 
       // Determine scope element so we can isolate the values on which this expression depends
-      if (el.hasAttribute('x-calculator-scope')) {
-        const scopeSelector = el.getAttribute('x-calculator-scope');
+      if (el.hasAttribute(ATTRIBUTE_NAME_SCOPE)) {
+        const scopeSelector = el.getAttribute(ATTRIBUTE_NAME_SCOPE);
         scopeElement = scopeSelector ? findScope(el, scopeSelector) : el;
       } else {
         // Traverse parents to find one that limits scope with x-calculator-scope
         let current = el.parentElement;
         while (current && current !== document) {
-          if (current.hasAttribute('x-calculator-scope')) {
-            const scopeSelector = current.getAttribute('x-calculator-scope');
+          if (current.hasAttribute(ATTRIBUTE_NAME_SCOPE)) {
+            const scopeSelector = current.getAttribute(ATTRIBUTE_NAME_SCOPE);
             scopeElement = scopeSelector ? findScope(current, scopeSelector) : current;
             break;
           }
@@ -446,10 +489,14 @@
   }
 
   // Configuration function for future extensibility
-  AlpineCalculator.configure = (config = {}) => {
-    if (typeof config['handleNaN'] === 'function') {
+  AlpineCalculator.configure = (desiredConfig = {}) => {
+    if (typeof desiredConfig['handleNaN'] === 'function') {
       // Allow custom handling of NaN values in expressions
-      handleNaN = config['handleNaN'];
+      config.handleNaN = desiredConfig.handleNaN;
+    }
+    if (typeof desiredConfig['localeAttribute'] === 'string') {
+      // Allow custom attribute name for locale overrides
+      config.localeAttribute = desiredConfig.localeAttribute;
     }
     return AlpineCalculator;
   };

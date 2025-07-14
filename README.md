@@ -1,6 +1,6 @@
 # Alpine Calculations
 
-Easily collect values and perform calculations in Alpine.js. Personally, I use this to perform calculations on
+Easily collect values and perform calculations in [Alpine.js](https://alpinejs.dev/). Personally, I use this to perform calculations on
 FilamentPHP forms, but it can be used in any environment where Alpine.js is used.
 
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/luttje/alpine-calculations?label=version&style=flat-square)
@@ -11,17 +11,19 @@ FilamentPHP forms, but it can be used in any environment where Alpine.js is used
 > [!NOTE]
 > This plugin is a proof-of-concept. I have not yet decided if I will continue maintaining this plugin, but I will keep it available
 > for now.
-> AlpineJS can already do all this with `x-model` and `x-effect`, but the main goal for me was to see if I could make the
+> Alpine.js can already do all this with `x-model` and `x-effect`, but the main goal for me was to see if I could make the
 > front-end for calculations in FilamentPHP cleaner and more readable.
 
 ## 💽 Installation
+
+You can install this plugin in your project using either a CDN or NPM.
 
 ### CDN
 
 Include the following script in your HTML:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/alpine-calculations@0.1.x/dist/alpine-calculations.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/alpine-calculations/dist/alpine-calculations.js" defer></script>
 ```
 
 ### NPM
@@ -30,7 +32,7 @@ Include the following script in your HTML:
 npm install alpine-calculations
 ```
 
-Enable the directives attributes in your project by registering the plugin with Alpine.
+Enable the directives attributes in your project by registering the plugin with Alpine.js.
 
 ```js
 import Alpine from 'alpinejs'
@@ -130,7 +132,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         FilamentAsset::register([
-            Js::make('alpine-calculations', 'https://cdn.jsdelivr.net/npm/alpine-calculations@0.1.x/dist/alpine-calculations.js')
+            Js::make('alpine-calculations', 'https://cdn.jsdelivr.net/npm/alpine-calculations/dist/alpine-calculations.js')
                 ->core(),
         ]);
     }
@@ -251,7 +253,7 @@ Use `x-calculator-precision` to control decimal places, for example to show tax 
 
 ## 🧩 Configuration
 
-You can customize how `NaN` values are handled by configuring the plugin before starting Alpine.js:
+You can configure the plugin to change its behavior globally when initializing Alpine.js:
 
 ```javascript
 import AlpineCalculator from 'alpine-calculations';
@@ -263,4 +265,43 @@ Alpine.plugin(
 );
 
 Alpine.start();
+```
+
+### Handling NaN Values
+
+You can set a custom handler for `NaN` values that may occur during calculations:
+
+```javascript
+AlpineCalculator.configure({
+    handleNaN: () => 'N/A' // Return 'N/A' instead of NaN for invalid calculations
+})
+```
+
+### Localization Attribute
+
+This plugin will look for the `x-calculator-locale` attribute on the scope or body to determine the locale for number formatting. If not set, it defaults to whatever the user's browser setting is. This will affect how numbers are parsed and formatted from `input` elements of type `text` and non-input elements.
+
+To override the number formatting locale, you can set the `x-calculator-locale` attribute on:
+
+1. The element with `x-calculator-source`
+2. The source element's scope described with `x-calculator-scope`
+3. On the `<body>` tag.
+
+The plugin checks these in order and uses the first one it finds. If none are found, it defaults to whatever the user's browser setting is (through `new Intl.NumberFormat().resolvedOptions().locale`).
+
+```html
+<body x-calculator-locale="en-US">
+```
+
+*The value should be a valid locale string, such as `en-US`, `fr-FR`, etc.*
+
+> [!NOTE]
+> Dynamically changing the locale attribute value is not yet supported.
+
+You can change what this attribute is called by configuring the plugin:
+
+```javascript
+AlpineCalculator.configure({
+    localeAttribute: 'x-calculator-locale'
+});
 ```
