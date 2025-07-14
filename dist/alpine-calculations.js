@@ -11,6 +11,7 @@
    */
 
   const ATTRIBUTE_NAME_SCOPE = 'x-calculator-scope';
+  const ATTRIBUTE_NAME_PRECISION = 'x-calculator-precision';
 
   /**
    * Configuration settings
@@ -428,7 +429,7 @@
         const previousValue = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ? el.value : el.textContent;
 
         // Update element content
-        updateElementContent(el, result, el.getAttribute('x-calculator-precision'));
+        updateElementContent(el, result, el.getAttribute(ATTRIBUTE_NAME_PRECISION));
 
         // If this element is also a source and its value changed, trigger cascading updates
         const source = sourceRegistry.get(el);
@@ -456,25 +457,6 @@
       // Cleanup when directive is removed
       cleanup(() => {
         expressionRegistry.delete(el);
-      });
-    });
-
-    /**
-     * Directive: x-calculator-scope
-     *
-     * Defines calculation scope boundaries for isolation
-     */
-    Alpine.directive('calculator-scope', (el, {
-      expression
-    }, {
-      cleanup
-    }) => {
-      // Store scope selector for reference
-      el._calculatorScope = expression;
-
-      // Cleanup when directive is removed
-      cleanup(() => {
-        delete el._calculatorScope;
       });
     });
     Alpine.calculator = AlpineCalculator;
