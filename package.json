@@ -9,6 +9,11 @@
     "url": "https://github.com/luttje/alpine-calculations"
   },
   "main": "src/index.js",
+  "files": [
+    "src",
+    "dist",
+    "builds"
+  ],
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w",
