@@ -22,8 +22,13 @@ You can install this plugin in your project using either a CDN or NPM.
 Include the following script in your HTML:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/alpine-calculations/dist/alpine-calculations.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/alpine-calculations@0.2.3/dist/alpine-calculations.js"
+        integrity="sha384-QCo4C/mURXsvUFdMnCHBv7oudDaNRaCke1TzVpXspE9kLzsfcqGf3gxbceHiaH2W"
+        crossorigin="anonymous"
+        defer></script>
 ```
+
+Pinning the version and adding the `integrity` hash makes sure the browser only runs the exact file you reviewed. When upgrading, change both the version and the hash.
 
 ### NPM
 
@@ -134,7 +139,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         FilamentAsset::register([
-            Js::make('alpine-calculations', 'https://cdn.jsdelivr.net/npm/alpine-calculations/dist/alpine-calculations.js')
+            Js::make('alpine-calculations', 'https://cdn.jsdelivr.net/npm/alpine-calculations@0.2.3/dist/alpine-calculations.js')
                 ->core(),
         ]);
     }

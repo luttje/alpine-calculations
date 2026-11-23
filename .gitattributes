@@ -1,0 +1,3 @@
+# Keep the built bundle byte-identical on every platform, so the integrity
+# hash in the README matches the file that gets published
+dist/** text eol=lf
