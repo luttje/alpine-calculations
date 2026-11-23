@@ -71,8 +71,11 @@ To perform calculations, let's work with a simple example of a calculator that c
 > Take note that the plugin is designed so that:
 >
 > - **Source values**: are automatically sanitized and may contain user content
+> - **Source identifiers**: must always be developer-controlled. They become variable names in expressions, so only plain identifiers are accepted (letters, digits, `_` and `$`, not starting with a digit, no reserved words). Anything else is ignored with a console warning
 > - **Expression content**: must always be developer-controlled and never contain user content
 > - **User input in expressions**: are never supported!
+>
+> Calculations run in the browser, where users can change any value. Treat results as a display convenience and always recalculate totals on the server before storing or acting on them.
 >
 > ### ❌ UNSAFE: Dynamic Expression Building
 >
@@ -177,6 +180,8 @@ public function form(Form $form): Form
 **Usage**: `x-calculator-source="identifier"`
 
 This directive tells the plugin to track the value of an element and make it available to calculations using the specified identifier.
+
+The identifier must be a valid JavaScript variable name, like `price` or `item_count`. Identifiers such as `item-count` or `class` are ignored with a console warning.
 
 **Example**:
 
