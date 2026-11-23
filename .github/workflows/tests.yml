@@ -7,13 +7,23 @@ on:
       - "dist/**"
       - "src/**"
       - "tests/**"
+      - "package.json"
+      - "package-lock.json"
+      - "rollup.config.mjs"
       - ".github/workflows/**"
   pull_request:
     paths:
       - "dist/**"
       - "src/**"
       - "tests/**"
+      - "package.json"
+      - "package-lock.json"
+      - "rollup.config.mjs"
       - ".github/workflows/**"
+
+# The jobs only need to read the repository
+permissions:
+  contents: read
 
 jobs:
   tests:
@@ -25,10 +35,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup Node (${{ matrix.node-version }})
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
 
