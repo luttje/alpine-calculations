@@ -95,6 +95,77 @@ describe('AlpineJS Calculator Security Tests', () => {
     expect(result.textContent).toBe('30')
   })
 
+  test('x-calculator-source IDs cannot inject code through parameter defaults', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    window.vulnerabilityTest = { value: 'original' };
+
+    document.body.innerHTML = `
+      <div x-data>
+        <input type="number" x-calculator-source="a,b=(globalThis.vulnerabilityTest.value='hacked')" value="1">
+        <input type="number" x-calculator-source="price" value="5">
+        <span id="result" x-calculator-expression="price * 2"></span>
+      </div>
+    `
+    await Promise.resolve()
+
+    expect(window.vulnerabilityTest.value).toBe('original')
+    expect(document.getElementById('result').textContent).toBe('10')
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('not a valid identifier'), expect.anything())
+
+    warn.mockRestore()
+    delete window.vulnerabilityTest;
+  })
+
+  test.each(['item-count', '1price', 'class', 'a b', ''])(
+    'invalid x-calculator-source ID "%s" is ignored without breaking other expressions',
+    async (id) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+
+      document.body.innerHTML = `
+        <div x-data>
+          <input type="number" x-calculator-source="${id}" value="1">
+          <input type="number" x-calculator-source="price" value="5">
+          <span id="result" x-calculator-expression="price * 2"></span>
+        </div>
+      `
+      await Promise.resolve()
+
+      expect(document.getElementById('result').textContent).toBe('10')
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('not a valid identifier'), expect.anything())
+
+      warn.mockRestore()
+    }
+  )
+
+  test.each(['constructor', '__proto__', 'toString', 'hasOwnProperty'])(
+    'x-calculator-source ID "%s" matching an Object property works like any other ID',
+    async (id) => {
+      document.body.innerHTML = `
+        <div x-data>
+          <input type="number" x-calculator-source="${id}" value="3">
+          <input type="number" x-calculator-source="price" value="5">
+          <span id="result" x-calculator-expression="${id} * price"></span>
+        </div>
+      `
+      await Promise.resolve()
+
+      expect(document.getElementById('result').textContent).toBe('15')
+
+      // Same within a scope
+      document.body.innerHTML = `
+        <div x-data>
+          <div x-calculator-scope>
+            <input type="number" x-calculator-source="${id}" value="4">
+            <span id="scoped" x-calculator-expression="${id} * 2"></span>
+          </div>
+        </div>
+      `
+      await Promise.resolve()
+
+      expect(document.getElementById('scoped').textContent).toBe('8')
+    }
+  )
+
   // This is a vulnerability test that demonstrates unsafe usage. We do not support user input in expressions.
   test('VULNERABILITY: x-calculator-expression can access global scope (UNSAFE USAGE)', async () => {
     window.vulnerabilityTest = { value: 'original' };

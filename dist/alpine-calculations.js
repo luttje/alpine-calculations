@@ -113,6 +113,30 @@
     }
     return result * sign;
   }
+
+  /**
+   * Checks whether a source ID can safely be used as a variable name in
+   * expressions. Source IDs become parameter names of the function that
+   * evaluates expressions, so anything other than a plain identifier could
+   * break evaluation or inject code.
+   *
+   * @param {string} id - The source ID to check
+   * @returns {boolean} True if the ID is a plain, non-reserved identifier
+   */
+  function isValidSourceId(id) {
+    if (typeof id !== 'string' || !/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(id)) {
+      return false;
+    }
+
+    // The pattern above rules out injection, so it's safe to let the engine
+    // tell us whether this is a reserved word (like `class` or `return`)
+    try {
+      new Function(id, '');
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
   function AlpineCalculator(Alpine) {
     // Global registry to track all calculator sources
     const sourceRegistry = new Map();
@@ -193,11 +217,12 @@
      * @returns {Object} Global context object
      */
     const createGlobalContext = existingContext => {
-      const context = {
-        sumValuesWithId
-      };
+      // Prototype-less objects, so source IDs like `constructor` or `toString`
+      // don't collide with inherited Object properties
+      const context = Object.create(null);
+      context.sumValuesWithId = sumValuesWithId;
       const allSources = Array.from(sourceRegistry.values());
-      const sourceGroups = {};
+      const sourceGroups = Object.create(null);
       allSources.forEach(source => {
         // If this source is already in the existing context, skip it and use
         // that value instead
@@ -226,9 +251,8 @@
      * @returns {Object} Context object for expression evaluation
      */
     const createEvaluationContext = scopeElement => {
-      const context = {
-        sumValuesWithId
-      };
+      const context = Object.create(null);
+      context.sumValuesWithId = sumValuesWithId;
       if (scopeElement !== document) {
         // Scoped context: only include sources within this scope
         const scopedSources = Array.from(sourceRegistry.values()).filter(source => scopeElement.contains(source.element));
@@ -409,6 +433,13 @@
       cleanup
     }) => {
       const sourceId = expression;
+
+      // Source IDs become variable names in expressions, so refuse anything
+      // that isn't a plain identifier
+      if (!isValidSourceId(sourceId)) {
+        console.warn(`Calculator source ID "${sourceId}" is not a valid identifier and will be ignored. ` + 'Use only letters, digits, _ and $ (not starting with a digit) and avoid reserved words.', el);
+        return;
+      }
 
       // Create an object used to interface with the source
       const source = {
