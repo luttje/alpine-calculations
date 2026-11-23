@@ -26,7 +26,6 @@
     "babel-jest": "^30.5.2",
     "jest": "^30.5.2",
     "jest-environment-jsdom": "^30.5.2",
-    "rollup": "^4.68.8",
-    "rollup-plugin-filesize": "^10.0.0"
+    "rollup": "^4.68.8"
   }
 }
