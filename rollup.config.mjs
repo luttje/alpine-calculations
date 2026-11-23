@@ -1,7 +1,6 @@
-
-import babel from 'rollup-plugin-babel'
+import { babel } from '@rollup/plugin-babel'
 import filesize from 'rollup-plugin-filesize'
-import resolve from 'rollup-plugin-node-resolve'
+import { nodeResolve } from '@rollup/plugin-node-resolve'
 
 export default {
   input: 'builds/cdn.js',
@@ -14,9 +13,10 @@ export default {
     }
   ],
   plugins: [
-    resolve(),
+    nodeResolve(),
     filesize(),
     babel({
+      babelHelpers: 'bundled',
       babelrc: false,
       exclude: 'node_modules/**',
       presets: [
